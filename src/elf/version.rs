@@ -1,5 +1,4 @@
 use goblin::elf::Elf;
-use std::collections::HashMap;
 use termimad::minimad::TextTemplate;
 
 use crate::utils::style::init_skin;

@@ -1,6 +1,5 @@
 use clap::{value_parser, Arg, ArgAction, Command};
 use goblin::Object;
-use utils::convert::convert_option_string_to_option_usize;
 use std::path::PathBuf;
 
 mod common;
@@ -9,6 +8,8 @@ mod pe;
 mod utils;
 use elf::ElfInfo;
 use pe::PeInfo;
+
+use crate::utils::convert::convert_option_string_to_option_usize;
 
 fn main() -> Result<(), goblin::error::Error> {
     let app_name = env!("APP_NAME");

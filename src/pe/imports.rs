@@ -1,6 +1,5 @@
 use goblin::pe::PE;
 use termimad::minimad::TextTemplate;
-use std::collections::HashMap;
 
 use crate::utils::{
     map::{MAP_COMCTL32_ORDINAL, MAP_OLEAUT32_ORDINAL, MAP_WS2_32_ORDINAL, MAP_WSOCK32_ORDINAL},

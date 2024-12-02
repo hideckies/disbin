@@ -10,23 +10,26 @@ mod info;
 mod strings;
 mod tls;
 
-use debug::display_pe_debug;
-use disasm::display_pe_disasm;
-use exceptions::display_pe_exceptions;
-use exports::display_pe_exports;
-use headers::{
-    display_pe_coff_header,
-    display_pe_dos_header,
-    display_pe_optional_header,
-    display_pe_rich_header,
-    display_pe_sections,
+use crate::{
+    common::{hashes::display_common_hashes, hex::display_hex},
+    pe::{
+        debug::display_pe_debug,
+        disasm::display_pe_disasm,
+        exceptions::display_pe_exceptions,
+        exports::display_pe_exports,
+        headers::{
+            display_pe_coff_header,
+            display_pe_dos_header,
+            display_pe_optional_header,
+            display_pe_rich_header,
+            display_pe_sections,
+        },
+        imports::display_pe_imports,
+        info::display_pe_info,
+        strings::display_pe_strings,
+        tls::display_pe_tls,
+    },
 };
-use imports::display_pe_imports;
-use info::display_pe_info;
-use strings::display_pe_strings;
-use tls::display_pe_tls;
-
-use crate::common::{hashes::display_common_hashes, hex::display_hex};
 
 pub struct PeInfo<'a> {
     pub filepath: String,

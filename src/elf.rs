@@ -7,18 +7,21 @@ mod info;
 mod strings;
 mod version;
 
-use disasm::display_elf_disasm;
-use dynamic::display_elf_dynamic_section;
-use headers::{
-    display_elf_program_headers,
-    display_elf_section_headers,
-    display_elf_symbol_table,
+use crate::{
+    common::{hashes::display_common_hashes, hex::display_hex},
+    elf::{
+        disasm::display_elf_disasm,
+        dynamic::display_elf_dynamic_section,
+        headers::{
+            display_elf_program_headers,
+            display_elf_section_headers,
+            display_elf_symbol_table,
+        },
+        info::display_elf_info,
+        strings::display_elf_strings,
+        version::display_elf_version_info,
+    },
 };
-use info::display_elf_info;
-use strings::display_elf_strings;
-use version::display_elf_version_info;
-
-use crate::common::{hashes::display_common_hashes, hex::display_hex};
 
 pub struct ElfInfo<'a> {
     pub filepath: String,
