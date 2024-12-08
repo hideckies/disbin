@@ -220,8 +220,6 @@ ${rows
 }
 
 pub fn display_elf_symbol_table(elf: &Elf) {
-    
-    // If no symbols...
     if elf.syms.len() == 0 {
         let text_template = TextTemplate::from(r#"
 # Symbol Table
@@ -237,16 +235,76 @@ no symbols
     }
 
     // If symbols exist...
+    let mut symbols: Vec<HashMap<String, String>> = Vec::new();
     for sym in elf.syms.iter() {
+        let mut symmap: HashMap<String, String> = HashMap::new();
+
+        let addr = format!("0x{:016X}", sym.st_value);
+        let bind = match sym.st_bind() {
+            goblin::elf::sym::STB_LOCAL => "LOCAL",
+            goblin::elf::sym::STB_GLOBAL => "GLOBAL",
+            goblin::elf::sym::STB_WEAK => "WEAK",
+            goblin::elf::sym::STB_NUM => "NUM",
+            goblin::elf::sym::STB_LOOS..=goblin::elf::sym::STB_HIOS => "OS-SPEC",
+            goblin::elf::sym::STB_LOPROC..=goblin::elf::sym::STB_HIPROC => "PROC-SPEC",
+            _ => "UNKNOWN",
+        };
+        let sym_type = match sym.st_type() {
+            goblin::elf::sym::STT_NOTYPE => "NOTYPE",
+            goblin::elf::sym::STT_OBJECT => "OBJECT",
+            goblin::elf::sym::STT_FUNC => "FUNC",
+            goblin::elf::sym::STT_SECTION => "SECTION",
+            goblin::elf::sym::STT_FILE => "FILE",
+            goblin::elf::sym::STT_COMMON => "COMMON",
+            goblin::elf::sym::STT_TLS => "TLS",
+            goblin::elf::sym::STT_GNU_IFUNC => "IFUNC",
+            _ => "UNKNOWN",
+        };
+        let section_name = match sym.st_shndx as u32 {
+            goblin::elf::section_header::SHN_UNDEF => "*UND*",
+            goblin::elf::section_header::SHN_ABS => "*ABS*",
+            goblin::elf::section_header::SHN_COMMON => "*COM*",
+            goblin::elf::section_header::SHN_LORESERVE..=goblin::elf::section_header::SHN_HIRESERVE => "RESERVED",
+            idx  if idx < elf.section_headers.len() as u32 => {
+                elf.shdr_strtab
+                    .get_at(elf.section_headers[idx as usize].sh_name)
+                    .unwrap_or("")
+            },
+            _ => "UNKNOWN",
+        };
+        let name = elf.strtab.get_at(sym.st_name).unwrap_or("");
+        let size = format!("0x{:X}", sym.st_size);
+
+        symmap.insert("addr".to_string(), addr);
+        symmap.insert("bind".to_string(), bind.to_string());
+        symmap.insert("type".to_string(), sym_type.to_string());
+        symmap.insert("section_name".to_string(), section_name.to_string());
+        symmap.insert("name".to_string(), name.to_string());
+        symmap.insert("size".to_string(), size);
         
+        symbols.push(symmap);
     }
+
     let text_template = TextTemplate::from(r#"
 # Symbol Table
-
-symbols found but not implemented yet
+|:-|:-|:-|:-|
+|**Addr**|**Bind**|**Type**|**Section**|**Name**|**Size**|
+${rows
+|:-|:-|:-|::-|:-|
+|${addr}|${bind}|${type}|${section_name}|${name}|${size}|
+}
+|-
     "#);
-
-    let expander = text_template.expander();
+    let mut expander = text_template.expander();
+    for sym in symbols.iter() {
+        expander.sub("rows")
+            .set("addr", sym.get("addr").unwrap())
+            .set("bind", sym.get("bind").unwrap())
+            .set("type", sym.get("type").unwrap())
+            .set("section_name", sym.get("section_name").unwrap())
+            .set("name", sym.get("name").unwrap())
+            .set("size", sym.get("size").unwrap());
+    }
     let skin = init_skin();
     println!();
     skin.print_expander(expander);

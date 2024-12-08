@@ -47,7 +47,7 @@ impl<'a> PeInfo<'a> {
     }
 
     pub fn display_info(&self) {
-        display_pe_info(&self.filepath, &self.fileobj);
+        display_pe_info(&self.filepath, &self.filebuf, &self.fileobj);
     }
 
     pub fn display_hashes(&self) {
@@ -75,7 +75,7 @@ impl<'a> PeInfo<'a> {
     }
 
     pub fn display_sections(&self) {
-        display_pe_sections(&self.fileobj);
+        display_pe_sections(&self.filebuf, &self.fileobj);
     }
 
     pub fn display_imports(&self) {

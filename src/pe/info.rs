@@ -2,7 +2,10 @@ use goblin::pe::PE;
 use std::fs::metadata;
 use termimad::minimad::TextTemplate;
 
-use crate::utils::style::init_skin;
+use crate::utils::{
+    entropy::calc_entropy,
+    style::init_skin,
+};
 
 fn get_characteristics(characteristics: u16) -> Vec<&'static str> {
     let mut flags = Vec::new();
@@ -92,7 +95,7 @@ fn get_dll_characteristics(characteristic: u16) -> Vec<&'static str> {
     flags
 }
 
-pub fn display_pe_info(filepath: &str, pe: &PE) {
+pub fn display_pe_info(filepath: &str, filebuf: &Vec<u8>, pe: &PE) {
     let i_filesize = match metadata(filepath) {
         Ok(meta) => format!("0x{:X}", meta.len()),
         Err(_) => "???".to_string(),
@@ -183,6 +186,8 @@ pub fn display_pe_info(filepath: &str, pe: &PE) {
         .collect::<Vec<&str>>()
         .join(" ");
 
+    let i_entropy = format!("{}", calc_entropy(filebuf));
+
     let text_template = TextTemplate::from(r#"
 # File Information
 |:-|:-|
@@ -216,6 +221,8 @@ pub fn display_pe_info(filepath: &str, pe: &PE) {
 |-
 |**DLL Characteristics**|${dll_characteristics}|
 |-
+|**Entropy**|${entropy}|
+|-
     "#);
 
     let mut expander = text_template.expander();
@@ -234,7 +241,8 @@ pub fn display_pe_info(filepath: &str, pe: &PE) {
         .set("num_of_symtab", &i_num_of_symtab)
         .set("timestamp", &i_timestamp)
         .set("characteristics", &i_characteristics)
-        .set("dll_characteristics", &i_dll_characteristics);
+        .set("dll_characteristics", &i_dll_characteristics)
+        .set("entropy", &i_entropy);
 
         let skin = init_skin();
         println!();

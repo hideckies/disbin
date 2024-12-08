@@ -2,9 +2,9 @@ use goblin::elf::Elf;
 use std::fs::metadata;
 use termimad::minimad::TextTemplate;
 
-use crate::utils::style::init_skin;
+use crate::utils::{entropy::calc_entropy, style::init_skin};
 
-pub fn display_elf_info(filepath: &str, elf: &Elf) {
+pub fn display_elf_info(filepath: &str, filebuf: &Vec<u8>, elf: &Elf) {
     let i_filesize = match metadata(filepath) {
         Ok(meta) => format!("0x{:X}", meta.len()),
         Err(_) => "???".to_string(),
@@ -95,6 +95,8 @@ pub fn display_elf_info(filepath: &str, elf: &Elf) {
     let i_shnum = format!("0x{:X}", elf.header.e_shnum);
     let i_shstrndx = format!("0x{:X}", elf.header.e_shstrndx);
 
+    let i_entropy = format!("{}", calc_entropy(filebuf));
+
     let text_template = TextTemplate::from(r#"
 # File Information
 |:-|:-|
@@ -136,6 +138,8 @@ pub fn display_elf_info(filepath: &str, elf: &Elf) {
 |-
 |**Section Header String Table Index**|${shstrndx}|
 |-
+|**Entropy**|${entropy}|
+|-
 "#);
 
     let mut expander = text_template.expander();
@@ -159,7 +163,8 @@ pub fn display_elf_info(filepath: &str, elf: &Elf) {
         .set("phnum", &i_phnum)
         .set("shentsize", &i_shentsize)
         .set("shnum", &i_shnum)
-        .set("shstrndx", &i_shstrndx);
+        .set("shstrndx", &i_shstrndx)
+        .set("entropy", &i_entropy);
 
     let skin = init_skin();
     println!();

@@ -2,7 +2,7 @@ use goblin::pe::PE;
 use std::collections::HashMap;
 use termimad::minimad::TextTemplate;
 
-use crate::utils::{map::MAP_PRODUCT_ID_AND_VS_VERSION, style::init_skin};
+use crate::utils::{entropy::calc_entropy, map::MAP_PRODUCT_ID_AND_VS_VERSION, style::init_skin};
 
 pub fn display_pe_dos_header(pe: &PE) {
     let dos_header = &pe.header.dos_header;
@@ -680,7 +680,7 @@ no optional header
             println!();
 }
 
-pub fn display_pe_sections(pe: &PE) {
+pub fn display_pe_sections(filebuf: &Vec<u8>, pe: &PE) {
     let mut secmaps: Vec<HashMap<String, String>> = Vec::new();
 
     let mut idx = 0;
@@ -704,6 +704,9 @@ pub fn display_pe_sections(pe: &PE) {
         let sec_ptr_to_linenumbers = format!("0x{:X}", section.pointer_to_linenumbers);
         let sec_num_of_linenumbers = format!("0x{:X}", section.number_of_linenumbers);
 
+        let sec_buf = &filebuf[section.pointer_to_raw_data as usize..(section.pointer_to_raw_data + section.size_of_raw_data) as usize];
+        let sec_entropy = format!("{:.4}", calc_entropy(&sec_buf.to_vec()));
+
         secmap.insert("idx".to_string(), idx.to_string());
         secmap.insert("name".to_string(), sec_name);
         secmap.insert("raw_addr".to_string(), sec_raw_addr);
@@ -715,6 +718,7 @@ pub fn display_pe_sections(pe: &PE) {
         secmap.insert("num_of_relocations".to_string(), sec_num_of_relocations);
         secmap.insert("ptr_to_linenumbers".to_string(), sec_ptr_to_linenumbers);
         secmap.insert("num_of_linenumbers".to_string(), sec_num_of_linenumbers);
+        secmap.insert("entropy".to_string(), sec_entropy);
 
         secmaps.push(secmap);
 
@@ -723,11 +727,11 @@ pub fn display_pe_sections(pe: &PE) {
 
     let text_template = TextTemplate::from(r#"
 # Sections
-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|
-|**Idx**|**Name**|**Raw Addr**|**Raw Size**|**Virtual Addr**|**Virtual Size**|**Characteristics**|**Ptr to Relocations**|**Num of Relocations**|**Ptr to Linenumbers**|**Num of Linenumbers**|
+|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|
+|**Idx**|**Name**|**Raw Addr**|**Raw Size**|**Virtual Addr**|**Virtual Size**|**Characteristics**|**Ptr to Relocations**|**Num of Relocations**|**Ptr to Linenumbers**|**Num of Linenumbers**|**Entropy**|
 |-
 ${rows
-|${idx}|${name}|${raw_addr}|${raw_size}|${virtual_addr}|${virtual_size}|${characteristics}|${ptr_to_relocations}|${num_of_relocations}|${ptr_to_linenumbers}|${num_of_linenumbers}|
+|${idx}|${name}|${raw_addr}|${raw_size}|${virtual_addr}|${virtual_size}|${characteristics}|${ptr_to_relocations}|${num_of_relocations}|${ptr_to_linenumbers}|${num_of_linenumbers}|${entropy}|
 |-
 }
     "#);
@@ -744,7 +748,8 @@ ${rows
             .set("ptr_to_relocations", secmap.get("ptr_to_relocations").unwrap())
             .set("num_of_relocations", secmap.get("num_of_relocations").unwrap())
             .set("ptr_to_linenumbers", secmap.get("ptr_to_linenumbers").unwrap())
-            .set("num_of_linenumbers", secmap.get("num_of_linenumbers").unwrap());
+            .set("num_of_linenumbers", secmap.get("num_of_linenumbers").unwrap())
+            .set("entropy", secmap.get("entropy").unwrap());
     }
 
     let skin = init_skin();

@@ -13,6 +13,8 @@ pub fn extract_strings_from_buffer(data: &[u8], section_offset: usize, min_lengt
     let mut current_string = Vec::new();
     let mut start_offset = 0;
 
+    let max_length_to_display = 60;
+
     for (i, &byte) in data.iter().enumerate() {
         if byte.is_ascii_graphic() || byte.is_ascii_whitespace() {
 
@@ -30,7 +32,13 @@ pub fn extract_strings_from_buffer(data: &[u8], section_offset: usize, min_lengt
                 let mut strmap: HashMap<String, String> = HashMap::new();
                 strmap.insert("offset".to_string(), offset);
                 strmap.insert("length".to_string(), string_length);
-                strmap.insert("string".to_string(), truncate_string(&string_utf8.replace("\n", " ").replace("\r", "").replace("\t", " "), 30));
+                strmap.insert(
+                    "string".to_string(),
+                    truncate_string(
+                        &string_utf8.replace("\n", " ").replace("\r", "").replace("\t", " "),
+                        max_length_to_display,
+                    ),
+                );
 
                 strings.push(strmap);
             }
@@ -47,7 +55,13 @@ pub fn extract_strings_from_buffer(data: &[u8], section_offset: usize, min_lengt
         let mut strmap: HashMap<String, String> = HashMap::new();
         strmap.insert("offset".to_string(), offset);
         strmap.insert("length".to_string(), string_length);
-        strmap.insert("string".to_string(), truncate_string(&string_utf8.replace("\n", " ").replace("\r", "").replace("\t", " "), 30));
+        strmap.insert(
+            "string".to_string(),
+            truncate_string(
+                &string_utf8.replace("\n", " ").replace("\r", "").replace("\t", " "),
+            max_length_to_display,
+            ),
+        );
 
         strings.push(strmap);
     }

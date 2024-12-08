@@ -39,7 +39,7 @@ impl<'a> ElfInfo<'a> {
     }
 
     pub fn display_info(&self) {
-        display_elf_info(&self.filepath, &self.fileobj);
+        display_elf_info(&self.filepath, &self.filebuf, &self.fileobj);
     }
 
     pub fn display_hashes(&self) {
